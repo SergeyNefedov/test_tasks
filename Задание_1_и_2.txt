@@ -1,0 +1,43 @@
+Задание 1. SQL запрос
+
+Писал на PostgresSQL
+
+1) Доля заказов с промокодами
+
+Логика такая: в знаменателе считаем количество всех заказов, которые есть в orders
+в числителе - количество заказов, у которых есть промокод (для этого джойним с таблицей promocodes)
+не забываем привести к типу FLOAT, иначе будет выдаваться либо 0, либо 1 (если у всех заказов есть промокод).
+
+SELECT COUNT(*)::FLOAT / (SELECT COUNT(*)::FLOAT FROM orders) FROM orders
+INNER JOIN promocodes
+ON orders.promocode_id = promocodes.promocode_id
+
+2) Самый популярный промокод (название) и число его использований
+
+SELECT promocodes.name, COUNT(*) as cnt
+FROM promocodes
+INNER JOIN orders
+ON promocodes.promocode_id = orders.promocode_id
+GROUP BY promocodes.name
+ORDER BY cnt DESC
+LIMIT 1
+
+
+Задание 2. SQL запрос
+
+Необходимо вывести топ-10 офисов по потреблению печенек среди офисов,
+которые потребляют менее 1000 печенек
+
+SELECT buildings.office_name FROM buildings
+INNER JOIN consumption
+ON consumption.coffee_point_id = buildings.coffee_point_id
+WHERE buildings.office_name in (
+SELECT buildings.office_name FROM buildings
+INNER JOIN consumption
+ON consumption.coffee_point_id = buildings.coffee_point_id
+GROUP BY buildings.office_name
+HAVING SUM(consumption.cookies) < 1000
+)
+GROUP BY buildings.office_name
+ORDER BY SUM(consumption.cookies) DESC
+LIMIT 10
